@@ -33,7 +33,7 @@ void ARaceGameState::BeginPlay()
 	// ReadOnly용 체크 포인트 데이터 가져오기
 	for (AActor* CheckPoint : CheckPointList)
 	{
-		const ACheckPoint* NewCheckPoint = static_cast<ACheckPoint*>(CheckPoint);
+		ACheckPoint* NewCheckPoint = static_cast<ACheckPoint*>(CheckPoint);
 		CheckPointData.Add(NewCheckPoint->GetCurrentCheckPoint(), NewCheckPoint);
 	}
 
@@ -72,9 +72,4 @@ void ARaceGameState::Tick(float DeltaSeconds)
 		// 여기서부터는 수식이 들어간다. 가장 가까운 다음 체크포인트 정보를 비교하는 방식으로 처리한다.
 		return true;
 	});
-
-	for (TObjectPtr<APlayerState> PlayerState : PlayerArray)
-	{
-		UE_LOG(LogTemp, Display, TEXT("현재 순서: %s"), *PlayerState->GetName());
-	}
 }

@@ -15,6 +15,7 @@ public:
 	ACheckPoint();
 
 	FORCEINLINE FString GetCurrentCheckPoint() const { return CurrentCheckPoint; }
+	FORCEINLINE FString GetNextCheckPoint() const { return NextCheckPoint; }
 
 	uint16 GetPinMainNumber() const;
 	
@@ -26,6 +27,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Options|CheckPoint", meta = (AllowPrivateAccess = true))
 	FString CurrentCheckPoint;
+	
+	UPROPERTY(EditAnywhere, Category = "Options|CheckPoint", meta = (AllowPrivateAccess = true))
+	FString NextCheckPoint;
 	
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UBoxComponent> CheckBox;
