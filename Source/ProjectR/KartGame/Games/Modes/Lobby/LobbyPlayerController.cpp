@@ -51,7 +51,7 @@ void ALobbyPlayerController::SetupInputComponent()
 		&ThisClass::OnTrigger_F5);
 }
 
-void ALobbyPlayerController::PushWidgetStack(UUserWidget* NewWidget)
+void ALobbyPlayerController::PushWidgetStack(const ELobbyUI& LobbyUIKey)
 {
 	// 이전의 마지막 위젯에 대한 후처리
 	// 위젯 스택이 비어있으면 로비이고, 아니라면 마지막 위젯 스택을 가져오게 처리한다.
@@ -63,8 +63,9 @@ void ALobbyPlayerController::PushWidgetStack(UUserWidget* NewWidget)
 	}
 
 	// 위젯 새로 넣고 처리하기
+	UUserWidget* NewWidget = WidgetValue.FindRef(LobbyUIKey);
 	WidgetStack.Push(NewWidget);
-	NewWidget->SetVisibility(ESlateVisibility::Collapsed);
+	NewWidget->SetVisibility(ESlateVisibility::Visible);
 	if (IWidgetStackInterface* WidgetStackInterface = Cast<IWidgetStackInterface>(NewWidget))
 	{
 		WidgetStackInterface->SetDefaultWidgetInfo();
@@ -73,6 +74,7 @@ void ALobbyPlayerController::PushWidgetStack(UUserWidget* NewWidget)
 
 void ALobbyPlayerController::PopWidgetStack()
 {
+	// 새로운 위젯이 들어오기 전의 처리
 	if (WidgetStack.Num() == 0)
 	{
 		// TODO: ESC 화면 노출
@@ -80,12 +82,33 @@ void ALobbyPlayerController::PopWidgetStack()
 	}
 
 	WidgetStack.Last()->SetVisibility(ESlateVisibility::Hidden);
+	if (IWidgetStackInterface* WidgetStackInterface = Cast<IWidgetStackInterface>(WidgetStack.Last()))
+	{
+		WidgetStackInterface->ClearWidgetInfo();
+	}
+	
 	WidgetStack.Pop();
+
+	// 위젯 빠진 이후에 대한 처리
+	if (WidgetStack.Num() == 0)
+	{
+		MainLobbyUI->SetVisibility(ESlateVisibility::Visible);
+		if (IWidgetStackInterface* WidgetStackInterface = Cast<IWidgetStackInterface>(MainLobbyUI))
+		{
+			WidgetStackInterface->SetDefaultWidgetInfo();
+		}
+		return;
+	}
+	
+	if (IWidgetStackInterface* WidgetStackInterface = Cast<IWidgetStackInterface>(WidgetStack.Last()))
+	{
+		WidgetStackInterface->SetDefaultWidgetInfo();
+	}
 }
 
 void ALobbyPlayerController::OnTrigger_C()
 {
-	OnClickInputKey_C_Notified.Broadcast();	
+	OnClickInputKey_C_Notified.Broadcast();
 }
 
 void ALobbyPlayerController::OnTrigger_F5()

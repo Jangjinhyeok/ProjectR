@@ -33,4 +33,7 @@ private:
 	
 	UFUNCTION()
 	void SearchGameAndJoinSessions();
+
+	UFUNCTION()
+	void OpenGameModeLobby();
 };

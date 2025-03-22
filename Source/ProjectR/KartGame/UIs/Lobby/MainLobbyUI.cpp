@@ -1,5 +1,6 @@
 ﻿#include "MainLobbyUI.h"
 
+#include "EnumUtil.h"
 #include "Components/Button.h"
 #include "KartGame/Games/KartGameInstance.h"
 #include "KartGame/Games/Modes/Lobby/LobbyPlayerController.h"
@@ -33,6 +34,7 @@ void UMainLobbyUI::SetDefaultWidgetInfo()
 		return;
 	}
 
+	PC->OnClickInputKey_C_Notified.AddDynamic(this, &ThisClass::OpenGameModeLobby);
 	PC->OnClickInputKey_F5_Notified.AddDynamic(this, &ThisClass::SearchGameAndJoinSessions);
 }
 
@@ -46,5 +48,17 @@ void UMainLobbyUI::ClearWidgetInfo()
 		return;
 	}
 	
+	PC->OnClickInputKey_C_Notified.RemoveDynamic(this, &ThisClass::OpenGameModeLobby);
 	PC->OnClickInputKey_F5_Notified.RemoveDynamic(this, &ThisClass::SearchGameAndJoinSessions);
+}
+
+void UMainLobbyUI::OpenGameModeLobby()
+{
+	ALobbyPlayerController* PC = Cast<ALobbyPlayerController>(GetOwningPlayer());
+	if (!PC)
+	{
+		return;
+	}
+
+	PC->PushWidgetStack(ELobbyUI::GameModeList);
 }

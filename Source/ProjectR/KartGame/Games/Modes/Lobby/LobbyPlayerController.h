@@ -22,6 +22,9 @@ class PROJECTR_API ALobbyPlayerController : public APlayerController
 public:
 	FOnClickInputKey_C_Notified OnClickInputKey_C_Notified;
 	FOnClickInputKey_F5_Notified OnClickInputKey_F5_Notified;
+
+	void PushWidgetStack(const ELobbyUI& LobbyUIKey);
+	void PopWidgetStack();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -33,9 +36,6 @@ private:
 
 	// TODO: 모듈화
 	TArray<TObjectPtr<UUserWidget>> WidgetStack;
-
-	void PushWidgetStack(UUserWidget* NewWidget);
-	void PopWidgetStack();
 
 #pragma region Input
 	UPROPERTY(EditDefaultsOnly, Category = "Options|Input|Key", meta = (AllowPrivateAccess = true))
