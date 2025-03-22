@@ -17,9 +17,3 @@ void UGameStartUI::GoNextSubUI()
 {
 	StartSubUISwitcher->SetActiveWidgetIndex(StartSubUISwitcher->GetActiveWidgetIndex() + 1);
 }
-
-void UGameStartUI::EndSubUI()
-{
-	RemoveFromParent();
-	GetOwningPlayer()->SetShowMouseCursor(true);
-}

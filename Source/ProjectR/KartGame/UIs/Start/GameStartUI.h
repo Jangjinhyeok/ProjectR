@@ -12,7 +12,11 @@ UCLASS()
 class PROJECTR_API UGameStartUI : public UUserWidget
 {
 	GENERATED_BODY()
-
+	
+public:
+	UFUNCTION(BlueprintImplementableEvent)
+	void EndSubUI();
+	
 protected:
 	virtual void NativeConstruct() override;
 	
@@ -28,7 +32,4 @@ private:
 
 	UFUNCTION()
 	void GoNextSubUI();
-	
-	UFUNCTION()
-	void EndSubUI();
 };
