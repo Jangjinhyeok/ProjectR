@@ -8,6 +8,11 @@
 			"Name": "ProjectR",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "ProjectREditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [
@@ -24,6 +29,14 @@
 		},
 		{
 			"Name": "ChaosVehiclesPlugin",
+			"Enabled": true
+		},
+		{
+			"Name": "CheckPointSystem",
+			"Enabled": true
+		},
+		{
+			"Name": "CheckPointSystem",
 			"Enabled": true
 		}
 	]
