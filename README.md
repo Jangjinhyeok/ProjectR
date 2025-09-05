@@ -54,6 +54,31 @@ classDiagram
 - **구현**: `ApplyRankBasedWeightAdjustments` 함수에서 플레이어의 등수(`PlayerRank`)와 전체 플레이어 수(`MaxPlayers`)를 이용해 정규화된 순위 값을 계산합니다. 이 값을 사용하여 아이템 유형(부스터, 공격, 방어)별 가중치 계수를 동적으로 조절합니다.
 - **성과**: 하위권일수록 부스터 아이템 획득 확률이, 상위권일수록 방어 아이템 획득 확률이 높아지도록 설계하여, 고착화될 수 있는 레이스 순위에 지속적인 변수를 창출하고 플레이어에게 전략적인 선택의 재미를 제공했습니다.
 
+```cpp
+// C:/Users/zero9/Documents/Github/ProjectR/Source/ProjectR/KartGame/Items/ItemBox.cpp
+
+void AItemBox::ApplyRankBasedWeightAdjustments(TMap<int32, FItemTable>& ItemMapToAdjust, int32 PlayerRank)
+{
+    // ... (변수 선언)
+
+	const int32 MaxPlayers = GetWorld()->GetNumControllers();
+	
+    // 꼴등일수록 높은 값을 가지는 부스터 계수
+	float BoosterBoostFactor = FMath::Clamp((float)PlayerRank / MaxPlayers, 0.0f, 1.0f);
+	
+    // 중간 등수에서 가장 높은 값을 가지는 공격 계수 (포물선 활용)
+	float AttackBoostFactor = 1.0f - 4.0f * FMath::Pow(((float)PlayerRank / MaxPlayers) - 0.5f, 2);
+	
+    // 1등일수록 높은 값을 가지는 방어 계수
+	float DefenseBoostFactor = FMath::Clamp(1.0f - ((float)PlayerRank - 1) / (MaxPlayers - 1), 0.f, 1.f);
+
+	for (auto& Item : ItemMapToAdjust)
+	{
+        // ... (아이템 ID에 따라 WeightMultiplier 적용)
+		Item.Value.ItemWeight = FMath::FloorToInt(Item.Value.ItemWeight * WeightMultiplier);
+	}
+}
+```
 <!-- 제안: 등수(X축)에 따른 아이템 타입별 획득 확률(Y축) 변화를 보여주는 그래프 -->
 
 #### 유도 미사일: 생동감 있는 움직임 구현
@@ -65,6 +90,7 @@ classDiagram
 
 <!-- 제안: 실제 미사일이 파동치며 날아가는 플레이 영상 (GIF 또는 짧은 비디오) -->
 
+## 2. 드래프트 시스템
 #### 쉴드 & 부스터: 상태 기반의 효율적인 효과 적용
 
 - **구현**: 쉴드와 부스터 아이템은 '상태 트리거' 방식으로 구현되었습니다. `AShield`와 `ABooster` 액터는 생성된 직후, 소유자 카트(`OwningPlayer`)의 관련 컴포넌트(`ItemInteractionComponent` for Shield)나 카트 자체(`AKart` for Booster)에 접근하여 `bShieldOn`이나 `bUsingBooster`와 같은 boolean 상태 플래그를 `true`로 설정합니다. 그 직후 아이템 액터 자체는 `Destroy()`를 통해 즉시 소멸합니다.
@@ -131,6 +157,25 @@ sequenceDiagram
 - **구현**: `AddDraftForce` 함수에서 카트의 `UBoxComponent`에 `AddForceAtLocation`을 사용하여 실제 힘을 가합니다. 힘은 카트의 질량과 `DraftForce` 값을 기반으로 계산되며, 각 바퀴의 위치에 적용하여 안정적인 가속을 구현했습니다.
 - **성과**: 단순한 속도 값 변경이 아닌, 물리 시뮬레이션에 직접 개입함으로써 다른 물리적 요소(충돌, 마찰 등)와 자연스럽게 상호작용하는, 무게감 있고 박진감 넘치는 부스트 효과를 만들어냈습니다.
 
+```cpp
+// C:/Users/zero9/Documents/Github/ProjectR/Source/ProjectR/KartGame/Kart/Components/KartDraftComponent.cpp
+
+void UKartDraftComponent::AddDraftForce()
+{
+    // ... (컴포넌트 가져오기)
+	auto* KartBody = Cast<UBoxComponent>(Kart->GetRootComponent());
+	
+    // 카트의 질량을 고려한 힘 계산
+	FVector force = KartBody->GetForwardVector() * KartBody->GetMass() * DraftForce;
+    
+    // 각 바퀴에 힘을 가하여 안정적인 가속 구현
+	for (int32 i = 0; i < AccelerationComponent->GetWheels().Num(); i++)
+	{
+		FVector location = AccelerationComponent->GetWheels()[i]->GetComponentLocation();
+		KartBody->AddForceAtLocation(force, location);
+	}
+}
+```
 <!-- 제안: 드래프트 UI(게이지)가 차오르고, 부스트가 발동되는 실제 플레이 영상 -->
 
 ## 3. 결론
