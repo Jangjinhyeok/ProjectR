@@ -4,7 +4,7 @@
 
 이 문서는 제가 구현한 시스템들의 기술적인 접근 방식, 해결 과제, 그리고 성과를 공유하기 위해 작성되었습니다.
 
-## 1. 아이템 시스템: 전략의 깊이를 더하다
+## 1. 아이템 시스템
 
 카트 레이싱의 핵심 재미 중 하나는 아이템을 활용한 예측 불가능한 경쟁입니다. 저는 단순한 기능 나열을 넘어, 플레이어의 상황에 따라 동적으로 변화하고 네트워크 환경에서 안정적으로 동작하는 아이템 시스템을 구축하고자 했습니다.
 
@@ -90,7 +90,6 @@ void AItemBox::ApplyRankBasedWeightAdjustments(TMap<int32, FItemTable>& ItemMapT
 
 <!-- 제안: 실제 미사일이 파동치며 날아가는 플레이 영상 (GIF 또는 짧은 비디오) -->
 
-## 2. 드래프트 시스템
 #### 쉴드 & 부스터: 상태 기반의 효율적인 효과 적용
 
 - **구현**: 쉴드와 부스터 아이템은 '상태 트리거' 방식으로 구현되었습니다. `AShield`와 `ABooster` 액터는 생성된 직후, 소유자 카트(`OwningPlayer`)의 관련 컴포넌트(`ItemInteractionComponent` for Shield)나 카트 자체(`AKart` for Booster)에 접근하여 `bShieldOn`이나 `bUsingBooster`와 같은 boolean 상태 플래그를 `true`로 설정합니다. 그 직후 아이템 액터 자체는 `Destroy()`를 통해 즉시 소멸합니다.
