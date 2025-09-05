@@ -1,10 +1,10 @@
 # ProjectR: 언리얼 엔진 기반 멀티플레이어 카트 레이싱 게임
 
-저는 이 프로젝트에서 플레이어에게 다채로운 변수를 제공하고, 역전의 재미를 더하는 두 가지 핵심 시스템, **아이템 시스템**과 **드래프트 시스템**의 설계와 구현을 담당했습니다.
+안녕하세요, ProjectR의 게임플레이 시스템 개발에 참여한 장진혁입니다. 저는 이 프로젝트에서 플레이어에게 다채로운 변수를 제공하고, 역전의 재미를 더하는 두 가지 핵심 시스템, **아이템 시스템**과 **드래프트 시스템**의 설계와 구현을 담당했습니다.
 
 이 문서는 제가 구현한 시스템들의 기술적인 접근 방식, 해결 과제, 그리고 성과를 공유하기 위해 작성되었습니다.
 
-## 1. 아이템 시스템
+## 1. 아이템 시스템: 전략의 깊이를 더하다
 
 카트 레이싱의 핵심 재미 중 하나는 아이템을 활용한 예측 불가능한 경쟁입니다. 저는 단순한 기능 나열을 넘어, 플레이어의 상황에 따라 동적으로 변화하고 네트워크 환경에서 안정적으로 동작하는 아이템 시스템을 구축하고자 했습니다.
 
@@ -54,34 +54,9 @@ classDiagram
 - **구현**: `ApplyRankBasedWeightAdjustments` 함수에서 플레이어의 등수(`PlayerRank`)와 전체 플레이어 수(`MaxPlayers`)를 이용해 정규화된 순위 값을 계산합니다. 이 값을 사용하여 아이템 유형(부스터, 공격, 방어)별 가중치 계수를 동적으로 조절합니다.
 - **성과**: 하위권일수록 부스터 아이템 획득 확률이, 상위권일수록 방어 아이템 획득 확률이 높아지도록 설계하여, 고착화될 수 있는 레이스 순위에 지속적인 변수를 창출하고 플레이어에게 전략적인 선택의 재미를 제공했습니다.
 
-```cpp
-// C:/Users/zero9/Documents/Github/ProjectR/Source/ProjectR/KartGame/Items/ItemBox.cpp
-
-void AItemBox::ApplyRankBasedWeightAdjustments(TMap<int32, FItemTable>& ItemMapToAdjust, int32 PlayerRank)
-{
-    // ... (변수 선언)
-
-	const int32 MaxPlayers = GetWorld()->GetNumControllers();
-	
-    // 꼴등일수록 높은 값을 가지는 부스터 계수
-	float BoosterBoostFactor = FMath::Clamp((float)PlayerRank / MaxPlayers, 0.0f, 1.0f);
-	
-    // 중간 등수에서 가장 높은 값을 가지는 공격 계수 (포물선 활용)
-	float AttackBoostFactor = 1.0f - 4.0f * FMath::Pow(((float)PlayerRank / MaxPlayers) - 0.5f, 2);
-	
-    // 1등일수록 높은 값을 가지는 방어 계수
-	float DefenseBoostFactor = FMath::Clamp(1.0f - ((float)PlayerRank - 1) / (MaxPlayers - 1), 0.f, 1.f);
-
-	for (auto& Item : ItemMapToAdjust)
-	{
-        // ... (아이템 ID에 따라 WeightMultiplier 적용)
-		Item.Value.ItemWeight = FMath::FloorToInt(Item.Value.ItemWeight * WeightMultiplier);
-	}
-}
-```
 <!-- 제안: 등수(X축)에 따른 아이템 타입별 획득 확률(Y축) 변화를 보여주는 그래프 -->
 
-#### 유도 미사일
+#### 유도 미사일: 생동감 있는 움직임 구현
 
 단순히 목표를 따라가는 것을 넘어, 살아있는 듯한 움직임을 보여주는 유도 미사일을 구현했습니다.
 
@@ -89,6 +64,25 @@ void AItemBox::ApplyRankBasedWeightAdjustments(TMap<int32, FItemTable>& ItemMapT
 - **성과**: 플레이어에게 시각적 재미를 선사함과 동시에, 예측하기 어려운 미사일 궤적을 통해 방어 아이템 사용이나 회피 기동 등 추가적인 상호작용을 유도했습니다.
 
 <!-- 제안: 실제 미사일이 파동치며 날아가는 플레이 영상 (GIF 또는 짧은 비디오) -->
+
+#### 쉴드 & 부스터: 상태 기반의 효율적인 효과 적용
+
+- **구현**: 쉴드와 부스터 아이템은 '상태 트리거' 방식으로 구현되었습니다. `AShield`와 `ABooster` 액터는 생성된 직후, 소유자 카트(`OwningPlayer`)의 관련 컴포넌트(`ItemInteractionComponent` for Shield)나 카트 자체(`AKart` for Booster)에 접근하여 `bShieldOn`이나 `bUsingBooster`와 같은 boolean 상태 플래그를 `true`로 설정합니다. 그 직후 아이템 액터 자체는 `Destroy()`를 통해 즉시 소멸합니다.
+- **성과**: 실제 효과(공격 방어, 가속)에 대한 복잡한 로직을 플레이어 카트의 컴포넌트가 전담하도록 역할을 명확히 분리했습니다. 이는 아이템 액터를 가볍게 유지하고, 상태 변화에 따른 효과 적용을 중앙에서 관리할 수 있게 하여 시스템의 응집도와 효율성을 높였습니다.
+
+<!-- 제안: 쉴드가 활성화된 카트가 미사일을 막아내는 플레이 영상 -->
+
+#### 물폭탄: 예측과 회피의 재미를 더하는 범위 공격
+
+물폭탄은 특정 위치에 시간차 공격을 가하는 아이템으로, 플레이어의 주행 경로를 예측하고 방해하는 전략적인 재미를 제공합니다.
+
+- **구현**:
+    1.  **목표 지점 설정**: 아이템 사용 시, 서버는 플레이어의 다음 체크포인트 방향으로 일정 거리(`ThrowingDistance`)만큼 떨어진 위치를 목표 지점(`EndPos`)으로 설정합니다.
+    2.  **포물선 이동**: `MoveToEstimateLocation` 함수는 시작점, 최고점, 목표점을 잇는 자연스러운 포물선 궤적을 계산합니다. 투사체의 위치는 서버에서 계산된 후 `NetMulticast` RPC를 통해 모든 클라이언트에 동기화됩니다.
+    3.  **범위 확장 및 공격**: 목표 지점에 도달한 물폭탄은 `SetWaterBombScale` 함수를 통해 일정 시간 동안 충돌 범위가 점차 커졌다가 작아지며 사라집니다. 이 범위 안에 들어온 다른 플레이어는 `OnWaterBombBeginOverlap`을 통해 감지되어 `Water` 디버프 효과를 받게 됩니다.
+- **성과**: 단순한 투사체가 아닌, 특정 지역을 일정 시간 동안 위험 지역으로 만드는 '장판기' 형태의 공격을 구현했습니다. 이를 통해 플레이어들은 단순히 아이템을 피하는 것을 넘어, 상대방의 예상 경로에 함정을 설치하거나, 위험 지역을 피해 새로운 경로를 개척하는 등 다층적인 전략을 구사할 수 있게 되었습니다.
+
+<!-- 제안: 물폭탄이 포물선으로 날아가 특정 지역에 떨어져 폭발하는 시퀀스 영상 -->
 
 ## 2. 드래프트 시스템: 속도감과 추격의 재미
 
@@ -137,25 +131,6 @@ sequenceDiagram
 - **구현**: `AddDraftForce` 함수에서 카트의 `UBoxComponent`에 `AddForceAtLocation`을 사용하여 실제 힘을 가합니다. 힘은 카트의 질량과 `DraftForce` 값을 기반으로 계산되며, 각 바퀴의 위치에 적용하여 안정적인 가속을 구현했습니다.
 - **성과**: 단순한 속도 값 변경이 아닌, 물리 시뮬레이션에 직접 개입함으로써 다른 물리적 요소(충돌, 마찰 등)와 자연스럽게 상호작용하는, 무게감 있고 박진감 넘치는 부스트 효과를 만들어냈습니다.
 
-```cpp
-// C:/Users/zero9/Documents/Github/ProjectR/Source/ProjectR/KartGame/Kart/Components/KartDraftComponent.cpp
-
-void UKartDraftComponent::AddDraftForce()
-{
-    // ... (컴포넌트 가져오기)
-	auto* KartBody = Cast<UBoxComponent>(Kart->GetRootComponent());
-	
-    // 카트의 질량을 고려한 힘 계산
-	FVector force = KartBody->GetForwardVector() * KartBody->GetMass() * DraftForce;
-    
-    // 각 바퀴에 힘을 가하여 안정적인 가속 구현
-	for (int32 i = 0; i < AccelerationComponent->GetWheels().Num(); i++)
-	{
-		FVector location = AccelerationComponent->GetWheels()[i]->GetComponentLocation();
-		KartBody->AddForceAtLocation(force, location);
-	}
-}
-```
 <!-- 제안: 드래프트 UI(게이지)가 차오르고, 부스트가 발동되는 실제 플레이 영상 -->
 
 ## 3. 결론
