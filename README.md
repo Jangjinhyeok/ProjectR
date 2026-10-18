@@ -55,7 +55,7 @@ classDiagram
 - **성과**: 하위권일수록 부스터 아이템 획득 확률이, 상위권일수록 방어 아이템 획득 확률이 높아지도록 설계하여, 고착화될 수 있는 레이스 순위에 지속적인 변수를 창출하고 플레이어에게 전략적인 선택의 재미를 제공했습니다.
 
 ```cpp
-// C:/Users/zero9/Documents/Github/ProjectR/Source/ProjectR/KartGame/Items/ItemBox.cpp
+// Source/ProjectR/KartGame/Items/ItemBox.cpp
 
 void AItemBox::ApplyRankBasedWeightAdjustments(TMap<int32, FItemTable>& ItemMapToAdjust, int32 PlayerRank)
 {
@@ -157,7 +157,7 @@ sequenceDiagram
 - **성과**: 단순한 속도 값 변경이 아닌, 물리 시뮬레이션에 직접 개입함으로써 다른 물리적 요소(충돌, 마찰 등)와 자연스럽게 상호작용하는, 무게감 있고 박진감 넘치는 부스트 효과를 만들어냈습니다.
 
 ```cpp
-// C:/Users/zero9/Documents/Github/ProjectR/Source/ProjectR/KartGame/Kart/Components/KartDraftComponent.cpp
+// Source/ProjectR/KartGame/Kart/Components/KartDraftComponent.cpp
 
 void UKartDraftComponent::AddDraftForce()
 {
